@@ -73,10 +73,10 @@ def run_display(api_key, font_file):
             if station == None:
                 logging.error("Could not find station for code: {}", station_code.value)
             line_codes = get_line_codes_from_station(station)
-            incidents = get_incidents(line_codes)
+            incidents = get_incidents(line_codes, api_key)
             for incident in incidents:
                 logging.info("Calling draw_incident for: {}".format(incident))
-                draw_incident(canvas, incident)
+                draw_incident(canvas, font_file, incident)
             incidents_check_count = 0
 
         prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update)
@@ -212,7 +212,7 @@ def draw_display(canvas, font_file, lines, cars, dests, mins):
 def parse_value(value):
     return value if value != None else ""
 
-def serve(lines_file, stations_file):
+def serve():
     app.run(host="0.0.0.0")
 
 
