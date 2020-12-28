@@ -6,3 +6,5 @@ more_incidents.jsonb
 test.py
 *.pyc
 log.txt
+start.sh
+
