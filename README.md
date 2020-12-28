@@ -12,6 +12,8 @@ This code depends on the [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb
 
 The font that I use on my personal display is `fonts/6x10.bdf` from the `rpi-rgb-led-matrix` library.
 
+Though it looks like one display, I'm actually using two of [these](https://www.adafruit.com/product/2277) Adafruit displays chained together. To drive and power them I'm using Adafruit's [RGB Matrix HAT](https://www.adafruit.com/product/2345).
+
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
 The stations and lines files needed to run a display can be created using `updateLinesInfo.py` and `updateStationInfo.py` as stand alone programs.
