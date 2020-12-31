@@ -1,0 +1,13 @@
+[Unit]
+Description=DC Metro Display Service
+After=network.target dietpi-boot.service dietpi-postboot.service rc-local.service
+
+[Service]
+Type=simple
+Restart=on-failure
+User=root
+ExecStart=/home/dietpi/metro-sign/rpi-metro-display/run.sh
+
+[Install]
+WantedBy=multi-user.target
+
