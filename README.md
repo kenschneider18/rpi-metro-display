@@ -142,8 +142,6 @@ Second, you'll have to chain the data ports of the two displays together to make
 
 Theoretically you can use any Raspberry Pi OS to run this, but in this guide I will be using DietPi, a lightweight Debian OS designed for Raspberry Pi and other SBCs.
 
-(If you want you can follow the first 2 steps from the [official DietPi installation guide](https://dietpi.com/docs/user-guide_installation/). After which this guide will deviate a little. If you use the official D)
-
 1. Follow the first 2 steps from the [official DietPi installation guide](https://dietpi.com/docs/user-guide_installation/).
 
 2. Configure the SD card to connect to Wi-Fi on first boot
@@ -158,10 +156,10 @@ See the images below for examples:
 
 ![dietpi_wifi_txt](img/dietpi_wifi_txt.png)
 
-2. Put the SD card in your Raspberry Pi and connect it to power.
+3. Put the SD card in your Raspberry Pi and connect it to power.
     - It make take several minutes to boot up the first time, don't worry.
 
-3. First Login
+4. First Login
     - After a few minutes, the Pi should have booted up and connected to your Wi-Fi network. Now you need to figure out how to log in.
     - Follow the instructions for step 4 from the section "Click here if you want to connect via network (running a _headless install_)" [here](https://dietpi.com/docs/user-guide_installation/#4-first-logon-on-dietpi).
     - If these steps don't work for you, you can also connect an HDMI cable and keyboard to your Pi and find the IP address that way.
@@ -170,7 +168,7 @@ _NOTE: If you’re on Mac, you can also use `nmap`. I recommend using Homebrew t
 
 _NOTE: Depending on your network, the IP range may be different than in the DietPi instructions. Common ranges are 192.168.1.0/24 and 10.0.0.0/24._
 
-4. Finish Installation
+5. Finish Installation
     - Once DietPi finishes updating, it will give you the option to install additional software. Skip this step and select `Install` at the bottom.
     - When you select install it will warn you that you are going to get a minimal installation. This is fine, we’ll add everything we need later.
 
@@ -376,3 +374,8 @@ Now you may have noticed we didn’t write `sudo` before the commands in the fil
 
 That’s it! Your metro display should now be turning on and off on schedule!
 
+## Troubleshooting
+
+If for some reason this isn't working for you, you might be able to find some useful information in the log file. If you've followed this guide it should be in `log.txt` within the project directory.
+
+If that doesn't work, feel free to open an issue here on GitHub!
