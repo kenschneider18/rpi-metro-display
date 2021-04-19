@@ -380,7 +380,7 @@ That’s it! Your metro display should now be turning on and off on schedule!
 
 A flashing/sparkling display has been reported a few times with Raspberry Pi 4. The recommended fix is to adjust the [GPIO slowdown](https://github.com/kenschneider18/rpi-metro-display/blob/master/rpi-metro-display.py#L109) setting in `init_matrix()` to 4.
 
-```go
+```python
 options.gpio_slowdown = 4
 ```
 
