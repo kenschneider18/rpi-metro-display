@@ -142,7 +142,7 @@ Second, you'll have to chain the data ports of the two displays together to make
 
 Theoretically you can use any Raspberry Pi OS to run this, but in this guide I will be using DietPi, a lightweight Debian OS designed for Raspberry Pi and other SBCs.
 
-1. Follow the first 2 steps from the [official DietPi installation guide](https://dietpi.com/docs/user-guide_installation/).
+1. Follow the first 2 steps from the [official DietPi installation guide](https://dietpi.com/docs/install/).
 
 2. Configure the SD card to connect to Wi-Fi on first boot
     - Open the freshly flashed SD card on your computer (you may need to unplug it and plug it back in for it to show up).
@@ -161,7 +161,7 @@ See the images below for examples:
 
 4. First Login
     - After a few minutes, the Pi should have booted up and connected to your Wi-Fi network. Now you need to figure out how to log in.
-    - Follow the instructions for step 4 from the section "Click here if you want to connect via network (running a _headless install_)" [here](https://dietpi.com/docs/user-guide_installation/#4-first-logon-on-dietpi).
+    - Follow the instructions for step 4 from the section "Click here if you want to connect via network (running a _headless install_)" [here](https://dietpi.com/docs/install/#4-first-logon-on-dietpi).
     - If these steps don't work for you, you can also connect an HDMI cable and keyboard to your Pi and find the IP address that way.
 
 _NOTE: If you’re on Mac, you can also use `nmap`. I recommend using Homebrew to install it. If you don’t have Homebrew you can get it from [here](https://brew.sh). Once you have brew, run `brew install nmap`._
