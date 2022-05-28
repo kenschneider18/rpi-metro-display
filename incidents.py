@@ -39,7 +39,7 @@ def get_incidents(lines_requested, api_key):
     try:
         headers = {"api_key":api_key, "Accept":"application/json"}
         resp = requests.get('https://api.wmata.com/Incidents.svc/json/Incidents', headers=headers)
-	logging.info("Attempting to get train data!")
+        logging.info("Attempting to get train data!")
         if resp.status_code != 200:
             logging.error("Error getting train data! Response status code: ", resp.status_code)
         else:
