@@ -60,8 +60,10 @@ def get_incidents(lines_requested, api_key):
 
                 logging.info(set(lines_requested).intersection(lines_affected))
                 if bool(set(lines_requested).intersection(lines_affected)):
-                    messages.append(incident['Description'])
-                    logging.info("matched!")
+                    if incident['Description']:
+                        desc = incident['Description'].replace("\n", " ")
+                        messages.append(desc)
+                        logging.info("matched!")
     except Exception as e:
         logging.error('Well that went wrong... {}', str(e))
 
