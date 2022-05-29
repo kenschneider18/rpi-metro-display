@@ -184,7 +184,7 @@ Root Terminal:
 2. Install pre-requisite software
 
 ```sh
-sudo apt install build-essential python python-all-dev python-setuptools python-wheel python-pip git libjpeg62-turbo-dev zlib1g-dev
+sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip git zlib1g-dev libopenjp2-7
 ```
 
 - This will install basic development tools and Python all of which are required to run the display.
@@ -224,16 +224,16 @@ nano lib/Makefile
 - Build the libary (this will take a few minutes)
 
 ```sh
-make build-python
+make build-python PYTHON=$(command -v python3)
 ```
 
 - Install the library (this will take a few minutes)
 
 ```sh
-sudo make install-python
+sudo make install-python PYTHON=$(command -v python3)
 ```
 
-- Run `pip freeze` to ensure the library is properly installed. It should return `rgbmatrix==0.0.1`.
+- Run `sudo python3 -m pip freeze` to ensure the library is properly installed. It should return `rgbmatrix==0.0.1`.
 - Go back to the `metro-sign` directory
 
 ```sh
