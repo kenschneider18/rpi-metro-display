@@ -26,6 +26,7 @@ import json
 import logging
 from incidents import get_incidents, draw_incident
 from logging.handlers import TimedRotatingFileHandler, SysLogHandler
+from traceback import format_exception
 
 app = Flask(__name__)
 
@@ -40,6 +41,7 @@ def exception_hook(exctype, value, tb):
     logging.error('Type: {}'.format(exctype))
     logging.error('Value: {}'.format(value))
     logging.error('TB: {}'.format(tb))
+    logging.error(format_exception(exctype, value, tb))
 
 def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update):
     lines, cars, dests, times = get_train_data(api_key)
