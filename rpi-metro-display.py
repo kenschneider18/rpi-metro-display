@@ -41,7 +41,8 @@ def exception_hook(exctype, value, tb):
     logging.error('Type: {}'.format(exctype))
     logging.error('Value: {}'.format(value))
     logging.error('TB: {}'.format(tb))
-    logging.error(format_exception(exctype, value, tb))
+    for s in format_exception(exctype, value, tb):
+        logging.error(s)
 
 def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update):
     lines, cars, dests, times = get_train_data(api_key)
