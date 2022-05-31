@@ -16,16 +16,16 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from flask import Flask, jsonify, request
-from multiprocessing import Process, Value, Array, Manager
+from multiprocessing import Process
+from multiprocessing.sharedctypes import Array
 import ctypes
 import time
 import sys
-import os
 import requests
 import json
 import logging
 from incidents import get_incidents, draw_incident
-from logging.handlers import TimedRotatingFileHandler, SysLogHandler
+from logging.handlers import TimedRotatingFileHandler
 from traceback import format_exception
 
 app = Flask(__name__)
