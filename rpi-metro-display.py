@@ -416,10 +416,10 @@ def change_station_by_name():
     station_lines = None
     terminal_station = None
 
-    if req.has_key('lines'):
+    if 'lines' in req:
         station_lines = req['lines']
 
-    if req.has_key('directionOf'):
+    if 'directionOf' in req:
         terminal_station = req['directionOf']
 
     # TODO: Replace this mess of code with JSONschema validation
