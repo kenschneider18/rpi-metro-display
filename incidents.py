@@ -60,12 +60,11 @@ def get_incidents(lines_requested, api_key):
                         desc = incident['Description'].replace("\n", " ")
                         messages.append(desc)
                         logging.info("matched!")
-    except Exception as e:
+    except Exception:
         tb = traceback.format_exc()
         traceback.print_exc()
         logging.error("well that went wrong...")
-        for s in tb:
-            logging.error(s)
+        logging.error(tb)
 
     logging.info(messages)
 
