@@ -423,7 +423,7 @@ def change_station_by_name():
         terminal_station = req['directionOf']
 
     # TODO: Replace this mess of code with JSONschema validation
-    if not isinstance(station_name, basestring):
+    if not isinstance(station_name, str):
         bad_name = {
             'error': ("Could not parse station code '{}'").format(req['stationName'])
         }
@@ -439,7 +439,7 @@ def change_station_by_name():
             return jsonify(**bad_lines), 400
         else:
             for index, line in enumerate(station_lines):
-                if not isinstance(line, basestring) or len(line) < 2 or len(line) > 6:
+                if not isinstance(line, str) or len(line) < 2 or len(line) > 6:
                     bad_line = {
                         'error': ("Could not parse line '{}'").format(line)
                     }
@@ -460,7 +460,7 @@ def change_station_by_name():
 
 
     if terminal_station != None:
-        if not isinstance(terminal_station, basestring):
+        if not isinstance(terminal_station, str):
             bad_station = {
                 'error': "Could not parse '{}'".format(terminal_station)
             }
