@@ -19,6 +19,7 @@ from flask import Flask, jsonify, request
 from multiprocessing import Process, Manager
 from multiprocessing.sharedctypes import Value
 import ctypes
+import traceback
 import time
 import sys
 import requests
@@ -119,8 +120,11 @@ def get_train_data(api_key):
 
     try:
         resp = requests.get("https://api.wmata.com/StationPrediction.svc/json/GetPrediction/" + station_code.value, headers=headers)
-    except Exception as e:
-        logging.error("An error occured while getting train data: {}".format(str(e)))
+    except Exception:
+        tb = traceback.format_exc()
+        traceback.print_exc()
+        logging.error("An error occured while getting train data:")
+        logging.error(tb)
         return None, None, None, None
 
     lines = []
@@ -181,7 +185,10 @@ def get_train_data(api_key):
 
 
         except ValueError:
+            tb = traceback.format_exc()
+            traceback.print_exc()
             logging.error("Received value error, invalid JSON.")
+            logging.error(tb)
 
     return lines, cars, dests, times
 

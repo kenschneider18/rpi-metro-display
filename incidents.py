@@ -52,7 +52,7 @@ def get_incidents(lines_requested, api_key):
                 logging.info("Lines: {}".format(lines_requested))
                 logging.info(lines_affected)
                 for index, line in enumerate(lines_affected):
-                    lines_affected[index] = unicode.strip(line)
+                    lines_affected[index] = line.strip()
 
                 logging.info(set(lines_requested).intersection(lines_affected))
                 if bool(set(lines_requested).intersection(lines_affected)):
