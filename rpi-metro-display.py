@@ -16,8 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from flask import Flask, jsonify, request
-from multiprocessing import Process
-from multiprocessing.sharedctypes import Array
+from multiprocessing import Process, Manager
+from multiprocessing.sharedctypes import Value
 import ctypes
 import time
 import sys
@@ -565,10 +565,11 @@ def main():
     logger.addHandler(handler)
     #logger.addHandler(sys_log_handler)
 
-    station_code = Array(ctypes.c_char, sys.argv[3])
-    direction = Array(ctypes.c_char, sys.argv[4])
-    lines_file = Array(ctypes.c_char, sys.argv[6])
-    stations_file = Array(ctypes.c_char, sys.argv[7])
+    manager = Manager()
+    station_code = Value(ctypes.c_wchar_p, sys.argv[3]) #Array(ctypes.c_char, sys.argv[3])
+    direction = Value(ctypes.c_wchar_p, sys.argv[4])
+    lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
+    stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
     server = Process(target = serve)
     run_displays = Process(target = run_display, args=(sys.argv[2],sys.argv[5],))
     server.start()
