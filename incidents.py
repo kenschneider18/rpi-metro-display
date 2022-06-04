@@ -146,7 +146,7 @@ def draw_message(canvas, message, font_file):
     for index, title_line in enumerate(title_lines):
         lines.insert(index, title_line)
 
-    for i in xrange(0, len(lines), 4):
+    for i in range(0, len(lines), 4):
         if len(lines) - i < 4:
             lines_to_display = len(lines) - i
         else:
