@@ -14,15 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+import traceback
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-from flask import Flask, jsonify, request
-from multiprocessing import Process, Value, Array
-import ctypes
 import time
 import sys
-import os
 import requests
-import json
 import logging
 
 def init_matrix():
@@ -65,8 +61,11 @@ def get_incidents(lines_requested, api_key):
                         messages.append(desc)
                         logging.info("matched!")
     except Exception as e:
-        print(repr(e))
-        logging.error(repr(e))
+        tb = traceback.format_exception(e)
+        traceback.print_exception(e)
+        logging.error("well that went wrong...")
+        for s in tb:
+            logging.error(s)
 
     logging.info(messages)
 

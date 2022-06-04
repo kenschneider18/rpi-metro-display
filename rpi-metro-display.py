@@ -18,7 +18,6 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from flask import Flask, jsonify, request
 from multiprocessing import Process, Manager
 from multiprocessing.sharedctypes import Value
-import collections
 import ctypes
 import time
 import sys
@@ -53,10 +52,10 @@ def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_des
         times == None:
         lines, cars, dests, times = prev_lines, prev_cars, prev_dests, prev_times
         logging.error("Error getting update from WMATA API.")
-    elif collections.Counter(lines) != collections.Counter(prev_lines) or \
-        collections.Counter(cars) != collections.Counter(prev_cars) or \
-        collections.Counter(dests) != collections.Counter(prev_dests) or \
-        collections.Counter(times) != collections.Counter(prev_times):
+    elif lines != prev_lines or \
+        cars != prev_cars or \
+        dests != prev_dests or \
+        times != prev_times:
         force_update = True
     elif force_update: 
         # Needed after an incident is displayed and the train times haven't changed
