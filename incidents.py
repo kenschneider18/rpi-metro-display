@@ -65,7 +65,7 @@ def get_incidents(lines_requested, api_key):
                         messages.append(desc)
                         logging.info("matched!")
     except Exception as e:
-        logging.error('Well that went wrong... {}', str(e))
+        logging.error('Well that went wrong... {}', repr(e))
 
     logging.info(messages)
 
