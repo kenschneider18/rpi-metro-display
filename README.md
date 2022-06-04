@@ -250,7 +250,7 @@ git clone https://github.com/kenschneider18/rpi-metro-display.git
 
 ```sh
 cd rpi-metro-display
-sudo pip install -r requirements.txt
+sudo python3 -m pip install -r requirements.txt
 ```
 
 _NOTE: the pip install must be run with sudo because the `rpi-rgb-led-matrix` driver needs to be run as root to work properly._
@@ -261,8 +261,8 @@ _NOTE: the pip install must be run with sudo because the `rpi-rgb-led-matrix` dr
 	- If you haven't gotten a WMATA API key yet, get one now. Check out their [developer portal](https://developer.wmata.com/).
 
 ```sh
-python updateLinesInfo.py <api-key> lines.json
-python updateStationInfo.py <api-key> stations.json
+python3 updateLinesInfo.py <api-key> lines.json
+python3 updateStationInfo.py <api-key> stations.json
 ```
 
 _NOTE: You can check to see if the downloads worked by running `cat lines.json` or `cat stations.json` to see the contents of the files.
