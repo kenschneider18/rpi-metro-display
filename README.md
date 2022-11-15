@@ -2,6 +2,8 @@
 
 Python code for DC metrorail times display.
 
+> :warning: **Users Prior to 11/14: If your stations and lines files aren't being updated with cronjobs, you may not be able to resolve the Silver Line Extension stations e.g. Dulles, Ashburn. To fix this, please pull new copies of these files and restart your display.**
+
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
 ![sign_title](img/sign_title.jpg)
@@ -186,6 +188,8 @@ Root Terminal:
 ```sh
 sudo apt install build-essential python python-all-dev python-setuptools python-wheel python-pip git libjpeg62-turbo-dev zlib1g-dev
 ```
+
+_**NOTE: Python 3 is not recommended at this time and only has partial support using the [Python 3 branch](https://github.com/kenschneider18/rpi-metro-display/tree/update/python3). The main feature that's broken is switching the station using the API, so if you can live without that, Python 3 is fine. Full support is a work in progress.**_
 
 - This will install basic development tools and Python all of which are required to run the display.
 
@@ -373,6 +377,7 @@ Once you save the file, you can run the below command to see that your changes h
 Now you may have noticed we didn’t write `sudo` before the commands in the file. This is because we ran `sudo crontab -e`. Any jobs created when this command is run as root will be run as root by default.
 
 That’s it! Your metro display should now be turning on and off on schedule!
+
 
 ## Troubleshooting
 
