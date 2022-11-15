@@ -2,7 +2,7 @@
 
 Python code for DC metrorail times display.
 
-> :warning: **Users Prior to 11/15: If your stations and lines files aren't being updated with cronjobs, you may not be able to resolve the Silver Line Extension stations e.g. Dulles, Ashburn. To fix this, please pull new copies of these files and restart your display.**
+> :warning: **Users Prior to 11/15/2022: If your stations and lines files aren't being updated with cronjobs, you may not be able to resolve the Silver Line Extension stations e.g. Dulles, Ashburn. To fix this, please pull new copies of these files and restart your display.**
 
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
