@@ -367,7 +367,7 @@ Similarly, if you want to automatically update the lines and stations files you 
 
 ```sh
 0 0 * * * python /home/dietpi/metro-sign/rpi-metro-display/updateLinesInfo.py <api-key> /home/dietpi/metro-sign/rpi-metro-display/lines.json
-0 0 * * * python /home/dietpi/metro-sign/rpi-metro-display/updateStationsInfo.py <api-key> /home/dietpi/metro-sign/rpi-metro-display/stations.json
+0 0 * * * python /home/dietpi/metro-sign/rpi-metro-display/updateStationInfo.py <api-key> /home/dietpi/metro-sign/rpi-metro-display/stations.json
 ```
 
 Once you save the file, you can run the below command to see that your changes have been written.
