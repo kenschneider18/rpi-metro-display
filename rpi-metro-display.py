@@ -45,8 +45,8 @@ def exception_hook(exctype, value, tb):
     for s in format_exception(exctype, value, tb):
         logging.error(s)
 
-def show_train_times(api_key, font_file, canvas, station_code, prev_lines, prev_cars, prev_dests, prev_times, force_update):
-    lines, cars, dests, times = get_train_data(api_key, station_code)
+def show_train_times(api_key, font_file, canvas, station_code, direction, prev_lines, prev_cars, prev_dests, prev_times, force_update):
+    lines, cars, dests, times = get_train_data(api_key, station_code, direction)
     if lines == None and \
         cars == None and \
         dests == None and \
@@ -71,11 +71,12 @@ def show_train_times(api_key, font_file, canvas, station_code, prev_lines, prev_
 
     return lines, cars, dests, times
 
-def run_display(api_key, station_code_receiver, font_file):
+def run_display(api_key, station_code_receiver, direction_receiver, font_file):
     #global station_code
 
-    # station code will be sent on init
+    # station code and direction will be sent on init
     station_code = station_code_receiver.recv()
+    direction = direction_receiver.recv()
     incidents_check_count = 0
     canvas = init_matrix()
     logging.info("RUNNING PROGRAM")
@@ -91,6 +92,8 @@ def run_display(api_key, station_code_receiver, font_file):
         force_update = False
         if station_code_receiver.poll():
             station_code = station_code_receiver.recv()
+        if direction_receiver.poll():
+            direction = direction_receiver.recv()
         if incidents_check_count == 12: # check for incidents every minute
             force_update = True
             station = get_station_by_code(station_code)
@@ -103,7 +106,7 @@ def run_display(api_key, station_code_receiver, font_file):
                 draw_incident(canvas, font_file, incident)
             incidents_check_count = 0
 
-        prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, station_code, prev_lines, prev_cars, prev_dests, prev_times, force_update)
+        prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, station_code, direction, prev_lines, prev_cars, prev_dests, prev_times, force_update)
         
         time.sleep(5)
         incidents_check_count += 1
