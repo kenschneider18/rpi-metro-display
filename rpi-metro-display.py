@@ -33,7 +33,7 @@ app = Flask(__name__)
 
 # Global shared variables
 #station_code = None
-direction = None
+#direction = None
 stations_file = None
 lines_file = None
 
@@ -117,7 +117,7 @@ def init_matrix():
     options.gpio_slowdown = 2
     return RGBMatrix(options = options)
 
-def get_train_data(api_key, station_code):
+def get_train_data(api_key, station_code, direction):
     headers = {"api_key":api_key, "Accept":"application/json"}
 
     try:
@@ -143,7 +143,7 @@ def get_train_data(api_key, station_code):
             logging.debug("GOT RESPONSE!!")
 
             for train in resp_json['Trains']:
-                if train['Group'] == direction.value:
+                if train['Group'] == direction:
                     car = parse_value(train['Car'])
                     dest = parse_value(train['Destination'])
                     line = parse_value(train['Line'])
@@ -160,7 +160,7 @@ def get_train_data(api_key, station_code):
                 # we can see if there are any trains going to our destination on the other
                 # pltform
                 station = get_station_by_code(station_code)
-                terminals = get_line_terminals(station)
+                terminals = get_line_terminals(station, direction)
                 trains_on_opposite_platform = []
                 for train in resp_json['Trains']:
                     for terminal in terminals:
@@ -172,7 +172,7 @@ def get_train_data(api_key, station_code):
                 # to be displayed
                 new_direction = "1"
                 if len(trains_on_opposite_platform) > 0:
-                    if direction.value == "1":
+                    if direction == "1":
                         new_direction = "2"
                     for train in resp_json['Trains']:
                         if train['Group'] == new_direction:
@@ -240,9 +240,10 @@ def draw_display(canvas, font_file, lines, cars, dests, mins):
 def parse_value(value):
     return value if value != None else ""
 
-def serve(station_code_sender):
+def serve(station_code_sender, direction_sender):
     with app.app_context():
         current_app.station_code_sender = station_code_sender
+        current_app.direction_sender = direction_sender
     app.run(host="0.0.0.0")
 
 
@@ -294,14 +295,13 @@ def parse_direction(direction, line):
     else:
         return ''
 
-def search_lines(line_code):
-    global direction
+def search_lines(line_code, direction):
     global lines_file
     with open(lines_file.value) as lf:
         lines_json = json.load(lf)
         for line in lines_json['Lines']:
             if line['LineCode'] == line_code:
-                return parse_direction(direction.value, line)
+                return parse_direction(direction, line)
 
 def get_direction_from_terminal(station_name, station_lines):
     global lines_file
@@ -320,7 +320,7 @@ def get_direction_from_terminal(station_name, station_lines):
     logging.debug("Station is None.")
     return None
 
-def get_line_terminals(station, lines=None):
+def get_line_terminals(station, direction, lines=None):
     terminals = []
 
     # If the user hasn't specified (a) line(s)
@@ -330,7 +330,7 @@ def get_line_terminals(station, lines=None):
         lines = get_line_codes_from_station(station)
 
     for line_code in lines:
-        terminals.append(search_lines(line_code))
+        terminals.append(search_lines(line_code, direction))
 
     return list(set(terminals)) # Remove duplicates from the set (some lines have the same terminal station)
 
@@ -376,7 +376,6 @@ def sanitize_input(station_name):
 
 
 def respond_success(station, lines=None, new_direction=None):
-    global direction
     logging.debug("Updating station to: {} with code {}.".format(station['Name'], station['Code']))
 
     with current_app.app_context():
@@ -384,10 +383,11 @@ def respond_success(station, lines=None, new_direction=None):
         station_code_sender.send(station['Code'])
 
     if new_direction != None:
-        with direction.get_lock():
-            direction.value = new_direction
+        with current_app.app_context():
+            direction_sender = current_app.direction_sender
+            direction_sender.send(new_direction)
 
-    terminals = get_line_terminals(station, lines)
+    terminals = get_line_terminals(station, new_direction, lines)
 
     success_json = {
         "stationName": station['Name'],
@@ -577,12 +577,13 @@ def main():
     #logger.addHandler(sys_log_handler)
 
     station_code_receiver, station_code_sender = Pipe()
-    #station_code = Value(ctypes.c_wchar_p, sys.argv[3]) #Array(ctypes.c_char, sys.argv[3])
     station_code_sender.send(sys.argv[3])
-    direction = Value(ctypes.c_wchar_p, sys.argv[4])
+    direction_receiver, direction_sender = Pipe()
+    #direction = Value(ctypes.c_wchar_p, sys.argv[4])
+    direction_sender.send(sys.argv[4])
     lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
     stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
-    server = Process(target = serve, args=(station_code_sender,))
+    server = Process(target = serve, args=(station_code_sender,direction_sender,))
     run_displays = Process(target = run_display, args=(sys.argv[2],station_code_receiver,sys.argv[5],))
     server.start()
     run_displays.start()
