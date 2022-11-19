@@ -578,6 +578,7 @@ def main():
 
     station_code_receiver, station_code_sender = Pipe()
     #station_code = Value(ctypes.c_wchar_p, sys.argv[3]) #Array(ctypes.c_char, sys.argv[3])
+    station_code_sender.send(sys.argv[3])
     direction = Value(ctypes.c_wchar_p, sys.argv[4])
     lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
     stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
