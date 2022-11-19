@@ -189,7 +189,7 @@ Root Terminal:
 sudo apt install build-essential python python-all-dev python-setuptools python-wheel python-pip git libjpeg62-turbo-dev zlib1g-dev
 ```
 
-_**NOTE: Python 3 is not recommended at this time and only has partial support using the [Python 3 branch](https://github.com/kenschneider18/rpi-metro-display/tree/update/python3). The main feature that's broken is switching the station using the API, so if you can live without that, Python 3 is fine. Full support is a work in progress.**_
+_**NOTE: Python 3 is considered beta and requires using the [Python 3 branch](https://github.com/kenschneider18/rpi-metro-display/tree/update/python3). The only API enabled in this branch is PUT /station/name, all other APIs have been removed.**_
 
 - This will install basic development tools and Python all of which are required to run the display.
 
