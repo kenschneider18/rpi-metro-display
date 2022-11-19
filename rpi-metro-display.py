@@ -15,8 +15,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-from flask import Flask, jsonify, request
-from multiprocessing import Process, Manager
+from flask import Flask, jsonify, request, current_app
+from multiprocessing import Process, Pipe
 from multiprocessing.sharedctypes import Value
 import ctypes
 import traceback
@@ -32,7 +32,7 @@ from traceback import format_exception
 app = Flask(__name__)
 
 # Global shared variables
-station_code = None
+#station_code = None
 direction = None
 stations_file = None
 lines_file = None
@@ -45,7 +45,7 @@ def exception_hook(exctype, value, tb):
     for s in format_exception(exctype, value, tb):
         logging.error(s)
 
-def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update):
+def show_train_times(api_key, font_file, canvas, station_code, prev_lines, prev_cars, prev_dests, prev_times, force_update):
     lines, cars, dests, times = get_train_data(api_key)
     if lines == None and \
         cars == None and \
@@ -71,9 +71,11 @@ def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_des
 
     return lines, cars, dests, times
 
-def run_display(api_key, font_file):
-    global station_code
+def run_display(api_key, station_code_receiver, font_file):
+    #global station_code
 
+    # station code will be sent on init
+    station_code = station_code_receiver.recv()
     incidents_check_count = 0
     canvas = init_matrix()
     logging.info("RUNNING PROGRAM")
@@ -87,11 +89,13 @@ def run_display(api_key, font_file):
 
     while True:
         force_update = False
+        if station_code_receiver.poll():
+            station_code = station_code_receiver.recv()
         if incidents_check_count == 12: # check for incidents every minute
             force_update = True
-            station = get_station_by_code(station_code.value)
+            station = get_station_by_code(station_code)
             if station == None:
-                logging.error("Could not find station for code: {}", station_code.value)
+                logging.error("Could not find station for code: {}", station_code)
             line_codes = get_line_codes_from_station(station)
             incidents = get_incidents(line_codes, api_key)
             for incident in incidents:
@@ -99,7 +103,7 @@ def run_display(api_key, font_file):
                 draw_incident(canvas, font_file, incident)
             incidents_check_count = 0
 
-        prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update)
+        prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, station_code, prev_lines, prev_cars, prev_dests, prev_times, force_update)
         
         time.sleep(5)
         incidents_check_count += 1
@@ -113,13 +117,11 @@ def init_matrix():
     options.gpio_slowdown = 2
     return RGBMatrix(options = options)
 
-def get_train_data(api_key):
-    global station_code
-
+def get_train_data(api_key, station_code):
     headers = {"api_key":api_key, "Accept":"application/json"}
 
     try:
-        resp = requests.get("https://api.wmata.com/StationPrediction.svc/json/GetPrediction/" + station_code.value, headers=headers)
+        resp = requests.get("https://api.wmata.com/StationPrediction.svc/json/GetPrediction/" + station_code, headers=headers)
     except Exception:
         tb = traceback.format_exc()
         traceback.print_exc()
@@ -157,7 +159,7 @@ def get_train_data(api_key):
                 # Using the terminal station names which we can get from the codes
                 # we can see if there are any trains going to our destination on the other
                 # pltform
-                station = get_station_by_code(station_code.value)
+                station = get_station_by_code(station_code)
                 terminals = get_line_terminals(station)
                 trains_on_opposite_platform = []
                 for train in resp_json['Trains']:
@@ -238,7 +240,9 @@ def draw_display(canvas, font_file, lines, cars, dests, mins):
 def parse_value(value):
     return value if value != None else ""
 
-def serve():
+def serve(station_code_sender):
+    with app.app_context():
+        current_app.station_code_sender = station_code_sender
     app.run(host="0.0.0.0")
 
 
@@ -373,11 +377,11 @@ def sanitize_input(station_name):
 
 def respond_success(station, lines=None, new_direction=None):
     global direction
-    global station_code
     logging.debug("Updating station to: {} with code {}.".format(station['Name'], station['Code']))
 
-    with station_code.get_lock():
-        station_code.value = station['Code']
+    with current_app.app_context():
+        station_code_sender = current_app.station_code_sender
+        station_code_sender.send(station['Code'])
 
     if new_direction != None:
         with direction.get_lock():
@@ -393,20 +397,20 @@ def respond_success(station, lines=None, new_direction=None):
     return jsonify(**success_json), 202
 
 
-# Change station by code
-@app.route('/station/code', methods=['POST'])
-def change_station_by_code():
-    global station_code
-    req = request.get_json(force=True)
-    with station_code.get_lock():
-        try:
-            station_code.value = req['station']
-        except:
-            badresp = {
-                'reason': "invalid station code"
-            }
-            return jsonify(**badresp), 418 #lawl i is a teapot
-    return '', 204
+# # Change station by code
+# @app.route('/station/code', methods=['POST'])
+# def change_station_by_code():
+#     global station_code
+#     req = request.get_json(force=True)
+#     with station_code.get_lock():
+#         try:
+#             station_code.value = req['station']
+#         except:
+#             badresp = {
+#                 'reason': "invalid station code"
+#             }
+#             return jsonify(**badresp), 418 #lawl i is a teapot
+#     return '', 204
 
 @app.route('/station/name', methods=['PUT'])
 def change_station_by_name():
@@ -519,37 +523,37 @@ def change_station_by_name():
     }
     return jsonify(**not_found), 404
 
-@app.route('/direction')
-def change_direction():
-    global direction
-    global station_code
-    with direction.get_lock():
-        if direction.value == "1":
-            direction.value = "2"
-        else:
-            direction.value = "1"
+# @app.route('/direction')
+# def change_direction():
+#     global direction
+#     global station_code
+#     with direction.get_lock():
+#         if direction.value == "1":
+#             direction.value = "2"
+#         else:
+#             direction.value = "1"
 
-    station = get_station_by_code(station_code.value)
+#     station = get_station_by_code(station_code.value)
 
-    return respond_success(station)
+#     return respond_success(station)
 
-@app.route('/state')
-def get_state():
-    global station_code
+# @app.route('/state')
+# def get_state():
+#     global station_code
 
-    station = get_station_by_code(station_code.value)
+#     station = get_station_by_code(station_code.value)
 
-    if station == None:
-        err_json = {
-            'error': "Could not find station for code {}".format(station_code.value)
-        }
-        return jsonify(**err_json), 500
+#     if station == None:
+#         err_json = {
+#             'error': "Could not find station for code {}".format(station_code.value)
+#         }
+#         return jsonify(**err_json), 500
 
-    return respond_success(station)
+#     return respond_success(station)
 
 
 def main():
-    global station_code
+    #global station_code
     global direction
     global stations_file
     global lines_file
@@ -572,13 +576,13 @@ def main():
     logger.addHandler(handler)
     #logger.addHandler(sys_log_handler)
 
-    manager = Manager()
-    station_code = Value(ctypes.c_wchar_p, sys.argv[3]) #Array(ctypes.c_char, sys.argv[3])
+    station_code_receiver, station_code_sender = Pipe()
+    #station_code = Value(ctypes.c_wchar_p, sys.argv[3]) #Array(ctypes.c_char, sys.argv[3])
     direction = Value(ctypes.c_wchar_p, sys.argv[4])
     lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
     stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
-    server = Process(target = serve)
-    run_displays = Process(target = run_display, args=(sys.argv[2],sys.argv[5],))
+    server = Process(target = serve, args=(station_code_sender))
+    run_displays = Process(target = run_display, args=(sys.argv[2],station_code_receiver,sys.argv[5],))
     server.start()
     run_displays.start()
 
