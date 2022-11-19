@@ -46,7 +46,7 @@ def exception_hook(exctype, value, tb):
         logging.error(s)
 
 def show_train_times(api_key, font_file, canvas, station_code, prev_lines, prev_cars, prev_dests, prev_times, force_update):
-    lines, cars, dests, times = get_train_data(api_key)
+    lines, cars, dests, times = get_train_data(api_key, station_code)
     if lines == None and \
         cars == None and \
         dests == None and \
