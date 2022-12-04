@@ -32,8 +32,6 @@ from traceback import format_exception
 app = Flask(__name__)
 
 # Global shared variables
-#station_code = None
-#direction = None
 stations_file = None
 lines_file = None
 
@@ -243,8 +241,9 @@ def draw_display(canvas, font_file, lines, cars, dests, mins):
 def parse_value(value):
     return value if value != None else ""
 
-def serve(station_code_sender, direction_sender):
+def serve(init_station_code, station_code_sender, direction_sender):
     with app.app_context():
+        current_app.station_code = init_station_code
         current_app.station_code_sender = station_code_sender
         current_app.direction_sender = direction_sender
     app.run(host="0.0.0.0")
@@ -382,8 +381,11 @@ def respond_success(station, lines=None, new_direction=None):
     logging.debug("Updating station to: {} with code {}.".format(station['Name'], station['Code']))
 
     with current_app.app_context():
-        station_code_sender = current_app.station_code_sender
-        station_code_sender.send(station['Code'])
+        station_code = station['Code']
+        if station_code != current_app.station_code:
+            current_app.station_code = station_code
+            station_code_sender = current_app.station_code_sender
+            station_code_sender.send(station_code)
 
     if new_direction != None:
         with current_app.app_context():
@@ -399,21 +401,6 @@ def respond_success(station, lines=None, new_direction=None):
 
     return jsonify(**success_json), 202
 
-
-# # Change station by code
-# @app.route('/station/code', methods=['POST'])
-# def change_station_by_code():
-#     global station_code
-#     req = request.get_json(force=True)
-#     with station_code.get_lock():
-#         try:
-#             station_code.value = req['station']
-#         except:
-#             badresp = {
-#                 'reason': "invalid station code"
-#             }
-#             return jsonify(**badresp), 418 #lawl i is a teapot
-#     return '', 204
 
 @app.route('/station/name', methods=['PUT'])
 def change_station_by_name():
@@ -526,38 +513,30 @@ def change_station_by_name():
     }
     return jsonify(**not_found), 404
 
-# @app.route('/direction')
-# def change_direction():
-#     global direction
-#     global station_code
-#     with direction.get_lock():
-#         if direction.value == "1":
-#             direction.value = "2"
-#         else:
-#             direction.value = "1"
 
-#     station = get_station_by_code(station_code.value)
+@app.route('/state')
+def get_state():
+    station = None
 
-#     return respond_success(station)
+    with current_app.app_context():
+        station_code = current_app.station_code
+        station = get_station_by_code(station_code)
+        if station == None:
+            err_json = {
+                'error': "Could not find station for code {}".format(station_code)
+            }
+            return jsonify(**err_json), 500
 
-# @app.route('/state')
-# def get_state():
-#     global station_code
+    if station == None:
+        err_json = {
+                'error': "Failed to get station from context"
+            }
+        return jsonify(**err_json), 500
 
-#     station = get_station_by_code(station_code.value)
-
-#     if station == None:
-#         err_json = {
-#             'error': "Could not find station for code {}".format(station_code.value)
-#         }
-#         return jsonify(**err_json), 500
-
-#     return respond_success(station)
+    return respond_success(station)
 
 
 def main():
-    #global station_code
-    global direction
     global stations_file
     global lines_file
 
@@ -582,7 +561,6 @@ def main():
     station_code_receiver, station_code_sender = Pipe()
     station_code_sender.send(sys.argv[3])
     direction_receiver, direction_sender = Pipe()
-    #direction = Value(ctypes.c_wchar_p, sys.argv[4])
     direction_sender.send(sys.argv[4])
     lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
     stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
