@@ -564,7 +564,7 @@ def main():
     direction_sender.send(sys.argv[4])
     lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
     stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
-    server = Process(target = serve, args=(station_code_sender,direction_sender,))
+    server = Process(target = serve, args=(sys.argv[3],station_code_sender,direction_sender,))
     run_displays = Process(target = run_display, args=(sys.argv[2],station_code_receiver,direction_receiver,sys.argv[5],))
     server.start()
     run_displays.start()
