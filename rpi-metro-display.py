@@ -241,9 +241,10 @@ def draw_display(canvas, font_file, lines, cars, dests, mins):
 def parse_value(value):
     return value if value != None else ""
 
-def serve(init_station_code, station_code_sender, direction_sender):
+def serve(init_station_code, init_direction, station_code_sender, direction_sender):
     with app.app_context():
         current_app.station_code = init_station_code
+        current_app.direction = init_direction
         current_app.station_code_sender = station_code_sender
         current_app.direction_sender = direction_sender
     app.run(host="0.0.0.0")
@@ -377,7 +378,7 @@ def sanitize_input(station_name):
     return station_name
 
 
-def respond_success(station, lines=None, new_direction=None):
+def respond_success(station, lines=None, direction=None):
     logging.debug("Updating station to: {} with code {}.".format(station['Name'], station['Code']))
 
     with current_app.app_context():
@@ -387,12 +388,17 @@ def respond_success(station, lines=None, new_direction=None):
             station_code_sender = current_app.station_code_sender
             station_code_sender.send(station_code)
 
-    if new_direction != None:
-        with current_app.app_context():
+    # if a new direction is submitted, change the direction
+    # otherwise, use the current direction
+    with current_app.app_context():
+        if direction != None:
+            current_app.direction = direction
             direction_sender = current_app.direction_sender
-            direction_sender.send(new_direction)
+            direction_sender.send(direction)
+        else:
+            direction = current_app.direction
 
-    terminals = get_line_terminals(station, new_direction, lines)
+    terminals = get_line_terminals(station, direction, lines)
 
     success_json = {
         "stationName": station['Name'],
@@ -564,7 +570,7 @@ def main():
     direction_sender.send(sys.argv[4])
     lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
     stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
-    server = Process(target = serve, args=(sys.argv[3],station_code_sender,direction_sender,))
+    server = Process(target = serve, args=(sys.argv[3],sys.argv[4],station_code_sender,direction_sender,))
     run_displays = Process(target = run_display, args=(sys.argv[2],station_code_receiver,direction_receiver,sys.argv[5],))
     server.start()
     run_displays.start()
