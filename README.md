@@ -250,7 +250,7 @@ git clone https://github.com/kenschneider18/rpi-metro-display.git
 
 ```sh
 cd rpi-metro-display
-sudo python3 -m pip install -r requirements.txt
+sudo python3 -m pip install --break-system-packages -r requirements.txt
 ```
 
 _NOTE: the pip install must be run with sudo because the `rpi-rgb-led-matrix` driver needs to be run as root to work properly._
