@@ -1,8 +1,8 @@
 # rpi-metro-display
 
-Python code for DC metrorail times display.
+> ⚠️ **The 1.x branch of rpi-metro-display is maintained only to provide legacy support for displays running Python 2. No further updates or bugfixes will be added to this code. However, the scripts to pull new lines still works and should continue to some time. Any new users should be using Python 3/version 2.x from the main branch.**
 
-> :warning: **Users Prior to 11/15/2022: If your stations and lines files aren't being updated with cronjobs, you may not be able to resolve the Silver Line Extension stations e.g. Dulles, Ashburn. To fix this, please pull new copies of these files and restart your display.**
+Python code for DC metrorail times display.
 
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
