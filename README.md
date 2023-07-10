@@ -2,6 +2,8 @@
 
 Python code for DC metrorail times display.
 
+> :warning: **Users Prior to 05/19/2023: If your stations and lines files aren't being updated with cronjobs, you may not be able to resolve newer stations, like the Silver Line Extension and Potomac Yards. To fix this, please pull new copies of these files and restart your display.**
+
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
 ![sign_title](img/sign_title.jpg)
