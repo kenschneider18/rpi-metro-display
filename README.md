@@ -189,6 +189,8 @@ Root Terminal:
 sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip git zlib1g-dev libopenjp2-7
 ```
 
+_**NOTE: Python 3 is considered beta and requires using the [Python 3 branch](https://github.com/kenschneider18/rpi-metro-display/tree/update/python3). The only API enabled in this branch is PUT /station/name, all other APIs have been removed.**_
+
 - This will install basic development tools and Python all of which are required to run the display.
 
 3. Create and enter `metro-sign` directory
@@ -365,7 +367,7 @@ Similarly, if you want to automatically update the lines and stations files you 
 
 ```sh
 0 0 * * * python /home/dietpi/metro-sign/rpi-metro-display/updateLinesInfo.py <api-key> /home/dietpi/metro-sign/rpi-metro-display/lines.json
-0 0 * * * python /home/dietpi/metro-sign/rpi-metro-display/updateStationsInfo.py <api-key> /home/dietpi/metro-sign/rpi-metro-display/stations.json
+0 0 * * * python /home/dietpi/metro-sign/rpi-metro-display/updateStationInfo.py <api-key> /home/dietpi/metro-sign/rpi-metro-display/stations.json
 ```
 
 Once you save the file, you can run the below command to see that your changes have been written.
@@ -375,6 +377,7 @@ Once you save the file, you can run the below command to see that your changes h
 Now you may have noticed we didn’t write `sudo` before the commands in the file. This is because we ran `sudo crontab -e`. Any jobs created when this command is run as root will be run as root by default.
 
 That’s it! Your metro display should now be turning on and off on schedule!
+
 
 ## Troubleshooting
 
