@@ -2,7 +2,7 @@
 
 Python code for DC metrorail times display.
 
-> :warning: **Users Prior to 07/10/2023: This project has been updated to use Python 3, see [this doc](https://www.python.org/doc/sunset-python-2/#:~:text=The%20sunset%20date%20has%20now,when%20we%20released%20Python%202.7.) for information on the sunsetting of Python 2. If your display is working fine with Python 2 and you don't wish to upgrade, be advised that pulling the latest code will break your display until you update to Python 3. If you've already pulled the latest code by mistake or want to perform the upgrade, please follow the instructions [below](#upgrading-to-python-3).**
+> :warning: **Users Prior to 11/12/2023: This project has been updated to use Python 3, see [this doc](https://www.python.org/doc/sunset-python-2/#:~:text=The%20sunset%20date%20has%20now,when%20we%20released%20Python%202.7.) for information on the sunsetting of Python 2. If your display is working fine with Python 2 and you don't wish to upgrade, be advised that pulling the latest code will break your display until you update to Python 3. If you've already pulled the latest code by mistake, please either use the branch `v1.x` or release `v1.0.5`.**
 
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
@@ -375,10 +375,6 @@ Once you save the file, you can run the below command to see that your changes h
 Now you may have noticed we didn’t write `sudo` before the commands in the file. This is because we ran `sudo crontab -e`. Any jobs created when this command is run as root will be run as root by default.
 
 That’s it! Your metro display should now be turning on and off on schedule!
-
-## Upgrading to Python 3
-
-Instructions pending.........................
 
 ## Troubleshooting
 
