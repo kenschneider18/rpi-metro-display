@@ -15,23 +15,23 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-from flask import Flask, jsonify, request
-from multiprocessing import Process, Value, Array, Manager
+from flask import Flask, jsonify, request, current_app
+from multiprocessing import Process, Pipe
+from multiprocessing.sharedctypes import Value
 import ctypes
+import traceback
 import time
 import sys
-import os
 import requests
 import json
 import logging
 from incidents import get_incidents, draw_incident
-from logging.handlers import TimedRotatingFileHandler, SysLogHandler
+from logging.handlers import TimedRotatingFileHandler
+from traceback import format_exception
 
 app = Flask(__name__)
 
 # Global shared variables
-station_code = None
-direction = None
 stations_file = None
 lines_file = None
 
@@ -40,19 +40,21 @@ def exception_hook(exctype, value, tb):
     logging.error('Type: {}'.format(exctype))
     logging.error('Value: {}'.format(value))
     logging.error('TB: {}'.format(tb))
+    for s in format_exception(exctype, value, tb):
+        logging.error(s)
 
-def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update):
-    lines, cars, dests, times = get_train_data(api_key)
+def show_train_times(api_key, font_file, canvas, station_code, direction, prev_lines, prev_cars, prev_dests, prev_times, force_update):
+    lines, cars, dests, times = get_train_data(api_key, station_code, direction)
     if lines == None and \
         cars == None and \
         dests == None and \
         times == None:
         lines, cars, dests, times = prev_lines, prev_cars, prev_dests, prev_times
         logging.error("Error getting update from WMATA API.")
-    elif cmp(lines, prev_lines) != 0 or \
-        cmp(cars, prev_cars) != 0 or \
-        cmp(dests, prev_dests) != 0 or \
-        cmp(times, prev_times) != 0:
+    elif lines != prev_lines or \
+        cars != prev_cars or \
+        dests != prev_dests or \
+        times != prev_times:
         force_update = True
     elif force_update: 
         # Needed after an incident is displayed and the train times haven't changed
@@ -67,9 +69,12 @@ def show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_des
 
     return lines, cars, dests, times
 
-def run_display(api_key, font_file):
-    global station_code
+def run_display(api_key, station_code_receiver, direction_receiver, font_file):
+    #global station_code
 
+    # station code and direction will be sent on init
+    station_code = station_code_receiver.recv()
+    direction = direction_receiver.recv()
     incidents_check_count = 0
     canvas = init_matrix()
     logging.info("RUNNING PROGRAM")
@@ -83,11 +88,15 @@ def run_display(api_key, font_file):
 
     while True:
         force_update = False
+        if station_code_receiver.poll():
+            station_code = station_code_receiver.recv()
+        if direction_receiver.poll():
+            direction = direction_receiver.recv()
         if incidents_check_count == 12: # check for incidents every minute
             force_update = True
-            station = get_station_by_code(station_code.value)
+            station = get_station_by_code(station_code)
             if station == None:
-                logging.error("Could not find station for code: {}", station_code.value)
+                logging.error("Could not find station for code: {}", station_code)
             line_codes = get_line_codes_from_station(station)
             incidents = get_incidents(line_codes, api_key)
             for incident in incidents:
@@ -95,7 +104,7 @@ def run_display(api_key, font_file):
                 draw_incident(canvas, font_file, incident)
             incidents_check_count = 0
 
-        prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, prev_lines, prev_cars, prev_dests, prev_times, force_update)
+        prev_lines, prev_cars, prev_dests, prev_times = show_train_times(api_key, font_file, canvas, station_code, direction, prev_lines, prev_cars, prev_dests, prev_times, force_update)
         
         time.sleep(5)
         incidents_check_count += 1
@@ -109,15 +118,16 @@ def init_matrix():
     options.gpio_slowdown = 2
     return RGBMatrix(options = options)
 
-def get_train_data(api_key):
-    global station_code
-
+def get_train_data(api_key, station_code, direction):
     headers = {"api_key":api_key, "Accept":"application/json"}
 
     try:
-        resp = requests.get("https://api.wmata.com/StationPrediction.svc/json/GetPrediction/" + station_code.value, headers=headers)
-    except Exception as e:
-        logging.error("An error occured while getting train data: {}".format(str(e)))
+        resp = requests.get("https://api.wmata.com/StationPrediction.svc/json/GetPrediction/" + station_code, headers=headers)
+    except Exception:
+        tb = traceback.format_exc()
+        traceback.print_exc()
+        logging.error("An error occured while getting train data:")
+        logging.error(tb)
         return None, None, None, None
 
     lines = []
@@ -134,7 +144,7 @@ def get_train_data(api_key):
             logging.debug("GOT RESPONSE!!")
 
             for train in resp_json['Trains']:
-                if train['Group'] == direction.value:
+                if train['Group'] == direction:
                     car = parse_value(train['Car'])
                     dest = parse_value(train['Destination'])
                     line = parse_value(train['Line'])
@@ -150,8 +160,8 @@ def get_train_data(api_key):
                 # Using the terminal station names which we can get from the codes
                 # we can see if there are any trains going to our destination on the other
                 # pltform
-                station = get_station_by_code(station_code.value)
-                terminals = get_line_terminals(station)
+                station = get_station_by_code(station_code)
+                terminals = get_line_terminals(station, direction)
                 trains_on_opposite_platform = []
                 for train in resp_json['Trains']:
                     for terminal in terminals:
@@ -163,7 +173,7 @@ def get_train_data(api_key):
                 # to be displayed
                 new_direction = "1"
                 if len(trains_on_opposite_platform) > 0:
-                    if direction.value == "1":
+                    if direction == "1":
                         new_direction = "2"
                     for train in resp_json['Trains']:
                         if train['Group'] == new_direction:
@@ -178,7 +188,10 @@ def get_train_data(api_key):
 
 
         except ValueError:
+            tb = traceback.format_exc()
+            traceback.print_exc()
             logging.error("Received value error, invalid JSON.")
+            logging.error(tb)
 
     return lines, cars, dests, times
 
@@ -228,7 +241,12 @@ def draw_display(canvas, font_file, lines, cars, dests, mins):
 def parse_value(value):
     return value if value != None else ""
 
-def serve():
+def serve(init_station_code, init_direction, station_code_sender, direction_sender):
+    with app.app_context():
+        current_app.station_code = init_station_code
+        current_app.direction = init_direction
+        current_app.station_code_sender = station_code_sender
+        current_app.direction_sender = direction_sender
     app.run(host="0.0.0.0")
 
 
@@ -280,14 +298,13 @@ def parse_direction(direction, line):
     else:
         return ''
 
-def search_lines(line_code):
-    global direction
+def search_lines(line_code, direction):
     global lines_file
     with open(lines_file.value) as lf:
         lines_json = json.load(lf)
         for line in lines_json['Lines']:
             if line['LineCode'] == line_code:
-                return parse_direction(direction.value, line)
+                return parse_direction(direction, line)
 
 def get_direction_from_terminal(station_name, station_lines):
     global lines_file
@@ -306,7 +323,7 @@ def get_direction_from_terminal(station_name, station_lines):
     logging.debug("Station is None.")
     return None
 
-def get_line_terminals(station, lines=None):
+def get_line_terminals(station, direction, lines=None):
     terminals = []
 
     # If the user hasn't specified (a) line(s)
@@ -316,7 +333,7 @@ def get_line_terminals(station, lines=None):
         lines = get_line_codes_from_station(station)
 
     for line_code in lines:
-        terminals.append(search_lines(line_code))
+        terminals.append(search_lines(line_code, direction))
 
     return list(set(terminals)) # Remove duplicates from the set (some lines have the same terminal station)
 
@@ -361,19 +378,27 @@ def sanitize_input(station_name):
     return station_name
 
 
-def respond_success(station, lines=None, new_direction=None):
-    global direction
-    global station_code
+def respond_success(station, lines=None, direction=None):
     logging.debug("Updating station to: {} with code {}.".format(station['Name'], station['Code']))
 
-    with station_code.get_lock():
-        station_code.value = station['Code']
+    with current_app.app_context():
+        station_code = station['Code']
+        if station_code != current_app.station_code:
+            current_app.station_code = station_code
+            station_code_sender = current_app.station_code_sender
+            station_code_sender.send(station_code)
 
-    if new_direction != None:
-        with direction.get_lock():
-            direction.value = new_direction
+    # if a new direction is submitted, change the direction
+    # otherwise, use the current direction
+    with current_app.app_context():
+        if direction != None:
+            current_app.direction = direction
+            direction_sender = current_app.direction_sender
+            direction_sender.send(direction)
+        else:
+            direction = current_app.direction
 
-    terminals = get_line_terminals(station, lines)
+    terminals = get_line_terminals(station, direction, lines)
 
     success_json = {
         "stationName": station['Name'],
@@ -383,21 +408,6 @@ def respond_success(station, lines=None, new_direction=None):
     return jsonify(**success_json), 202
 
 
-# Change station by code
-@app.route('/station/code', methods=['POST'])
-def change_station_by_code():
-    global station_code
-    req = request.get_json(force=True)
-    with station_code.get_lock():
-        try:
-            station_code.value = req['station']
-        except:
-            badresp = {
-                'reason': "invalid station code"
-            }
-            return jsonify(**badresp), 418 #lawl i is a teapot
-    return '', 204
-
 @app.route('/station/name', methods=['PUT'])
 def change_station_by_name():
     global stations_file
@@ -406,14 +416,14 @@ def change_station_by_name():
     station_lines = None
     terminal_station = None
 
-    if req.has_key('lines'):
+    if 'lines' in req:
         station_lines = req['lines']
 
-    if req.has_key('directionOf'):
+    if 'directionOf' in req:
         terminal_station = req['directionOf']
 
     # TODO: Replace this mess of code with JSONschema validation
-    if not isinstance(station_name, basestring):
+    if not isinstance(station_name, str):
         bad_name = {
             'error': ("Could not parse station code '{}'").format(req['stationName'])
         }
@@ -429,7 +439,7 @@ def change_station_by_name():
             return jsonify(**bad_lines), 400
         else:
             for index, line in enumerate(station_lines):
-                if not isinstance(line, basestring) or len(line) < 2 or len(line) > 6:
+                if not isinstance(line, str) or len(line) < 2 or len(line) > 6:
                     bad_line = {
                         'error': ("Could not parse line '{}'").format(line)
                     }
@@ -450,7 +460,7 @@ def change_station_by_name():
 
 
     if terminal_station != None:
-        if not isinstance(terminal_station, basestring):
+        if not isinstance(terminal_station, str):
             bad_station = {
                 'error': "Could not parse '{}'".format(terminal_station)
             }
@@ -509,38 +519,30 @@ def change_station_by_name():
     }
     return jsonify(**not_found), 404
 
-@app.route('/direction')
-def change_direction():
-    global direction
-    global station_code
-    with direction.get_lock():
-        if direction.value == "1":
-            direction.value = "2"
-        else:
-            direction.value = "1"
-
-    station = get_station_by_code(station_code.value)
-
-    return respond_success(station)
 
 @app.route('/state')
 def get_state():
-    global station_code
+    station = None
 
-    station = get_station_by_code(station_code.value)
+    with current_app.app_context():
+        station_code = current_app.station_code
+        station = get_station_by_code(station_code)
+        if station == None:
+            err_json = {
+                'error': "Could not find station for code {}".format(station_code)
+            }
+            return jsonify(**err_json), 500
 
     if station == None:
         err_json = {
-            'error': "Could not find station for code {}".format(station_code.value)
-        }
+                'error': "Failed to get station from context"
+            }
         return jsonify(**err_json), 500
 
     return respond_success(station)
 
 
 def main():
-    global station_code
-    global direction
     global stations_file
     global lines_file
 
@@ -562,12 +564,14 @@ def main():
     logger.addHandler(handler)
     #logger.addHandler(sys_log_handler)
 
-    station_code = Array(ctypes.c_char, sys.argv[3])
-    direction = Array(ctypes.c_char, sys.argv[4])
-    lines_file = Array(ctypes.c_char, sys.argv[6])
-    stations_file = Array(ctypes.c_char, sys.argv[7])
-    server = Process(target = serve)
-    run_displays = Process(target = run_display, args=(sys.argv[2],sys.argv[5],))
+    station_code_receiver, station_code_sender = Pipe()
+    station_code_sender.send(sys.argv[3])
+    direction_receiver, direction_sender = Pipe()
+    direction_sender.send(sys.argv[4])
+    lines_file = Value(ctypes.c_wchar_p, sys.argv[6])
+    stations_file = Value(ctypes.c_wchar_p, sys.argv[7])
+    server = Process(target = serve, args=(sys.argv[3],sys.argv[4],station_code_sender,direction_sender,))
+    run_displays = Process(target = run_display, args=(sys.argv[2],station_code_receiver,direction_receiver,sys.argv[5],))
     server.start()
     run_displays.start()
 

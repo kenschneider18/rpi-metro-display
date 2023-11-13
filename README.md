@@ -2,7 +2,7 @@
 
 Python code for DC metrorail times display.
 
-> :warning: **Users Prior to 11/15/2022: If your stations and lines files aren't being updated with cronjobs, you may not be able to resolve the Silver Line Extension stations e.g. Dulles, Ashburn. To fix this, please pull new copies of these files and restart your display.**
+> :warning: **Users Prior to 11/12/2023: This project has been updated to use Python 3, see [this doc](https://www.python.org/doc/sunset-python-2/#:~:text=The%20sunset%20date%20has%20now,when%20we%20released%20Python%202.7.) for information on the sunsetting of Python 2. If your display is working fine with Python 2 and you don't wish to upgrade, be advised that pulling the latest code will break your display until you update to Python 3. If you've already pulled the latest code by mistake, please either use the branch `v1.x` or release `v1.0.5`.**
 
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
 
@@ -186,7 +186,7 @@ Root Terminal:
 2. Install pre-requisite software
 
 ```sh
-sudo apt install build-essential python python-all-dev python-setuptools python-wheel python-pip git libjpeg62-turbo-dev zlib1g-dev
+sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip git zlib1g-dev libopenjp2-7
 ```
 
 _**NOTE: Python 3 is considered beta and requires using the [Python 3 branch](https://github.com/kenschneider18/rpi-metro-display/tree/update/python3). The only API enabled in this branch is PUT /station/name, all other APIs have been removed.**_
@@ -228,16 +228,16 @@ nano lib/Makefile
 - Build the libary (this will take a few minutes)
 
 ```sh
-make build-python
+make build-python PYTHON=$(command -v python3)
 ```
 
 - Install the library (this will take a few minutes)
 
 ```sh
-sudo make install-python
+sudo make install-python PYTHON=$(command -v python3)
 ```
 
-- Run `pip freeze` to ensure the library is properly installed. It should return `rgbmatrix==0.0.1`.
+- Run `sudo python3 -m pip freeze` to ensure the library is properly installed. It should return `rgbmatrix==0.0.1`.
 - Go back to the `metro-sign` directory
 
 ```sh
@@ -254,7 +254,7 @@ git clone https://github.com/kenschneider18/rpi-metro-display.git
 
 ```sh
 cd rpi-metro-display
-sudo pip install -r requirements.txt
+sudo python3 -m pip install --break-system-packages -r requirements.txt
 ```
 
 _NOTE: the pip install must be run with sudo because the `rpi-rgb-led-matrix` driver needs to be run as root to work properly._
@@ -265,8 +265,8 @@ _NOTE: the pip install must be run with sudo because the `rpi-rgb-led-matrix` dr
 	- If you haven't gotten a WMATA API key yet, get one now. Check out their [developer portal](https://developer.wmata.com/).
 
 ```sh
-python updateLinesInfo.py <api-key> lines.json
-python updateStationInfo.py <api-key> stations.json
+python3 updateLinesInfo.py <api-key> lines.json
+python3 updateStationInfo.py <api-key> stations.json
 ```
 
 _NOTE: You can check to see if the downloads worked by running `cat lines.json` or `cat stations.json` to see the contents of the files.

@@ -14,15 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+import traceback
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-from flask import Flask, jsonify, request
-from multiprocessing import Process, Value, Array
-import ctypes
 import time
 import sys
-import os
 import requests
-import json
 import logging
 
 def init_matrix():
@@ -56,7 +52,7 @@ def get_incidents(lines_requested, api_key):
                 logging.info("Lines: {}".format(lines_requested))
                 logging.info(lines_affected)
                 for index, line in enumerate(lines_affected):
-                    lines_affected[index] = unicode.strip(line)
+                    lines_affected[index] = line.strip()
 
                 logging.info(set(lines_requested).intersection(lines_affected))
                 if bool(set(lines_requested).intersection(lines_affected)):
@@ -64,8 +60,11 @@ def get_incidents(lines_requested, api_key):
                         desc = incident['Description'].replace("\n", " ")
                         messages.append(desc)
                         logging.info("matched!")
-    except Exception as e:
-        logging.error('Well that went wrong... {}', str(e))
+    except Exception:
+        tb = traceback.format_exc()
+        traceback.print_exc()
+        logging.error("well that went wrong...")
+        logging.error(tb)
 
     logging.info(messages)
 
@@ -147,7 +146,7 @@ def draw_message(canvas, message, font_file):
     for index, title_line in enumerate(title_lines):
         lines.insert(index, title_line)
 
-    for i in xrange(0, len(lines), 4):
+    for i in range(0, len(lines), 4):
         if len(lines) - i < 4:
             lines_to_display = len(lines) - i
         else:

@@ -1,14 +1,14 @@
 certifi==2020.12.5
 chardet==4.0.0
 click==7.1.2
-django>=1.11.29
+django>=2.2.24
 Flask==1.1.2
 idna==2.10
 image==1.5.33
 itsdangerous==1.1.0
 jinja2>=2.11.3
 MarkupSafe==1.1.1
-Pillow==6.2.2
+Pillow>=9.0.1
 pytz==2020.5
 requests==2.25.1
 six==1.15.0
