@@ -186,10 +186,8 @@ Root Terminal:
 2. Install pre-requisite software
 
 ```sh
-sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip git zlib1g-dev libopenjp2-7
+sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip git zlib1g-dev libopenjp2-7 cython3
 ```
-
-_**NOTE: Python 3 is considered beta and requires using the [Python 3 branch](https://github.com/kenschneider18/rpi-metro-display/tree/update/python3). The only API enabled in this branch is PUT /station/name, all other APIs have been removed.**_
 
 - This will install basic development tools and Python all of which are required to run the display.
 
