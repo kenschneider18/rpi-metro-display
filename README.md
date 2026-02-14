@@ -186,7 +186,7 @@ Root Terminal:
 2. Install pre-requisite software
 
 ```sh
-sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip git zlib1g-dev libopenjp2-7 cython3
+sudo apt install build-essential python3 python3-all-dev python3-setuptools python3-wheel python3-pip python3-pil git zlib1g-dev libopenjp2-7 cython3
 ```
 
 - This will install basic development tools and Python all of which are required to run the display.
