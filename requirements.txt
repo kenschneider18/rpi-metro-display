@@ -1,4 +1,4 @@
-certifi==2020.12.5
+certifi>=2026.7.22
 chardet==4.0.0
 click==7.1.2
 django>=2.2.24
