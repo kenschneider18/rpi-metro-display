@@ -2,6 +2,8 @@
 
 Python code for DC metrorail times display.
 
+> :warning: **Users Prior to 9/4/2026: If your display is blank, please update to the latest code and re-run [step 7 from this section](#install-rpi-metro-display)**
+
 > :warning: **Users Prior to 11/12/2023: This project has been updated to use Python 3, see [this doc](https://www.python.org/doc/sunset-python-2/#:~:text=The%20sunset%20date%20has%20now,when%20we%20released%20Python%202.7.) for information on the sunsetting of Python 2. If your display is working fine with Python 2 and you don't wish to upgrade, be advised that pulling the latest code will break your display until you update to Python 3. If you've already pulled the latest code by mistake, please either use the branch `v1.x` or release `v1.0.5`.**
 
 A WMATA API Key is needed to get live train data. API keys are free and you can sign up for one [here](https://developer.wmata.com/).
