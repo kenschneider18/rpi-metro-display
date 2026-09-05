@@ -381,6 +381,16 @@ That’s it! Your metro display should now be turning on and off on schedule!
 
 ## Troubleshooting
 
+##### Blank Display (Only Header Line Shown)
+
+If the display was previously working and is now blank and only showing the header line (LN CAR DEST MIN), it's likely that an outdated dependency is causing the WMATA API calls to fail. To fix this, please pull the latest code and then run this command from the repository root:
+
+```sh
+sudo python3 -m pip install --break-system-packages -r requirements.txt
+```
+
+See [Issue #31](https://github.com/kenschneider18/rpi-metro-display/issues/31) for more details.
+
 ##### Sparkling Display
 
 A flashing/sparkling display has been reported a few times with Raspberry Pi 4. The recommended fix is to adjust the [GPIO slowdown](https://github.com/kenschneider18/rpi-metro-display/blob/master/rpi-metro-display.py#L109) setting in `init_matrix()` to 4.
